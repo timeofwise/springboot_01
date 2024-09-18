@@ -40,9 +40,27 @@ public class TodoController {
 		return ResponseEntity.ok().body(response);
 	};
 	
+	@GetMapping()
+	public ResponseEntity<?> retrieveTodoList(){
+		String temporaryUserId = "temporary-user";
+		
+		// 서비스 메서드의 retrieve 메서드를 사용해서 Todo 리스트를 가죠온
+		List<TodoEntity> entities = service.retrieve(temporaryUserId);
+		
+		// 자바 스트림을 이용해서 리턴된 엔티티 리스트를 TodoDTO리스트로 변환한다.
+		List<TodoDTO> dtos = entities.stream().map(TodoDTO::new).collect(Collectors.toList());
+		
+		//변환된 TodoList를 이용해 ResponseDTO를 초기화한다.
+		ResponseDTO<TodoDTO> response = ResponseDTO.<TodoDTO>builder().data(dtos).build();
+		
+		//ResponseDTO를 리턴한다.
+		return ResponseEntity.ok().body(response);
+	};
+	
 	@PostMapping
 	@CrossOrigin(origins = "http://10.42.214.238:8002")
 	public ResponseEntity<?> createTodo(@RequestBody TodoDTO dto) {
+		System.out.println("post~!~!~!~!");
 		try {
 			String temporaryUserId = "temporary-user";
 			
@@ -74,5 +92,33 @@ public class TodoController {
 			
 			return ResponseEntity.badRequest().body(resposne);
 		}
-	}
+	};
+	
+	@PutMapping
+	@CrossOrigin(origins = "http://10.42.214.238:8002")
+	public ResponseEntity<?> updateTodo(@RequestBody TodoDTO dto) {
+		System.out.println("PUT~!~!~~!!");
+		System.out.println(dto);
+		String temporaryUserId = "temporary-user";
+		
+		//DTO를 entity로 변환한다.
+		TodoEntity entity = TodoDTO.toEntity(dto);
+		
+		//id를 temporaryUserId로 초기화한다. 여기에 인증부분에서 수정될예정
+		entity.setUserId(temporaryUserId);
+		
+		
+		//서비스를 이용해 entity를 업데이트한다.
+		List<TodoEntity> entities = service.update(entity);
+		
+		//자바 스트림을 이용해 리턴된 엔티티 리스트를 TodoDTO로 변환.
+		List<TodoDTO> dtos = entities.stream().map(TodoDTO::new).collect(Collectors.toList());
+		
+		//변환된 TodoDTO 리스트를 이용해 ResponseDTO를 초기화한다.
+		ResponseDTO<TodoDTO> response = ResponseDTO.<TodoDTO>builder().data(dtos).build();
+		
+		//ResponseDTO를 리턴한다.
+		return ResponseEntity.ok().body(response);
+		
+	};
 };
